@@ -105,7 +105,7 @@ export default function ExchangeRates() {
             const rate = rates?.find(r => r.currency === cur)
             return (
               <div key={cur} style={{ background: '#fff', borderRadius: 'var(--radius-xl)', border: '1px solid var(--ink-10)', padding: '22px', boxShadow: 'var(--shadow-sm)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', width: 100, height: 100, borderRadius: '50%', background: 'rgba(99,102,241,0.06)', top: -30, right: -20 }} />
+                <div style={{ position: 'absolute', width: 100, height: 100, borderRadius: '50%', background: 'rgba(99,102,241,0.06)', top: -30, right: -20, pointerEvents: 'none' }} />
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
