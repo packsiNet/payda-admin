@@ -46,8 +46,18 @@ export default function Login() {
         navigate('/')
       } catch (err: unknown) {
         const e = err as Record<string, unknown>
+        console.error('[Login] auth error:', e)
         if (e?.status === 403) {
           setError('شما دسترسی ادمین ندارید.')
+        } else if (e?.status === 401) {
+          setError('داده‌های تلگرام معتبر نیست. دوباره تلاش کنید.')
+        } else if (e?.status === 400) {
+          const msg = e?.message as string | undefined
+          setError(`درخواست نامعتبر: ${msg ?? 'خطای ناشناخته'}`)
+        } else if (e instanceof Error && e.message === 'Failed to fetch') {
+          setError('ارتباط با سرور برقرار نشد. اتصال اینترنت یا آدرس API را بررسی کنید.')
+        } else if (e?.status) {
+          setError(`خطای سرور (${e.status}). دوباره تلاش کنید.`)
         } else {
           setError('خطا در احراز هویت. دوباره تلاش کنید.')
         }
