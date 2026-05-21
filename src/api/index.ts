@@ -1,9 +1,14 @@
 import { http } from './client'
 import type {
   LoginResponse, User, UserDetail, ExchangeRate, Tier,
-  RequestItem, RequestSearchResult, Transaction,
+  RequestItem, RequestSearchResult, AdminRequestItem, Transaction,
 } from './types'
-import { Currency, RequestType, TransactionStatus } from './types'
+import { Currency, CurrencyLabel, RequestType, TransactionStatus } from './types'
+
+const REQUEST_TYPE_STR: Record<RequestType, string> = {
+  [RequestType.Send]: 'Send',
+  [RequestType.Receive]: 'Receive',
+}
 
 export const authApi = {
   adminLogin: (user: {
@@ -43,6 +48,11 @@ export const requestsApi = {
   },
   getAll: (type?: RequestType) =>
     http.get<RequestItem[]>(`/requests${type !== undefined ? `?type=${type}` : ''}`),
+  adminGetAll: (type: RequestType, currency: Currency, amount?: number) => {
+    const q = new URLSearchParams({ type: REQUEST_TYPE_STR[type], currency: CurrencyLabel[currency] })
+    if (amount) q.set('amount', String(amount))
+    return http.get<AdminRequestItem[]>(`/requests/admin?${q}`)
+  },
 }
 
 export const matchesApi = {

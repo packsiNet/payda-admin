@@ -100,6 +100,22 @@ export interface RequestSearchResult {
   createdAt: string
 }
 
+export interface AdminRequestItem {
+  id: string
+  type: RequestType
+  currency: Currency
+  amount: number
+  rateValue: number
+  paymentMethods: string[]
+  expiresAt: string
+  createdAt: string
+  userDisplayName: string
+  userInitials: string
+  userTierOrder: number
+  userTierName: string
+  userIsTrusted: boolean
+}
+
 export interface Transaction {
   id: string
   matchId: string

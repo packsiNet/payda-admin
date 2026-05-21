@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
-  IconSearch, IconArrowRight, IconArrowUp, IconArrowDown,
+  IconRefresh, IconArrowRight, IconArrowUp, IconArrowDown,
   IconShield, IconCircleCheck, IconX,
 } from '@tabler/icons-react'
 import { requestsApi, matchesApi } from '../api'
-import { Currency, CurrencyLabel, RequestType, type RequestSearchResult } from '../api/types'
+import { Currency, CurrencyLabel, RequestType, type AdminRequestItem } from '../api/types'
 import { useToast } from '../context/ToastContext'
 import Spinner from '../components/Spinner'
 
-function RequestCard({ req, selected, onSelect }: { req: RequestSearchResult; selected: boolean; onSelect: () => void }) {
+function RequestCard({ req, selected, onSelect }: { req: AdminRequestItem; selected: boolean; onSelect: () => void }) {
   return (
     <div
       onClick={onSelect}
@@ -25,9 +25,9 @@ function RequestCard({ req, selected, onSelect }: { req: RequestSearchResult; se
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{req.userDisplayName}</div>
-          <div style={{ fontSize: 10.5, color: 'var(--ink-40)' }}>Level {req.userLevel} · {req.userLevelTitle}</div>
+          <div style={{ fontSize: 10.5, color: 'var(--ink-40)' }}>Tier {req.userTierOrder} · {req.userTierName}</div>
         </div>
-        {req.isTrusted && (
+        {req.userIsTrusted && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 7px', borderRadius: 'var(--radius-full)', fontSize: 9.5, fontWeight: 700, background: 'var(--green-light)', color: 'var(--green-text)', border: '1px solid var(--green-mid)' }}>
             <IconShield size={10} /> Trusted
           </span>
@@ -57,27 +57,19 @@ function RequestCard({ req, selected, onSelect }: { req: RequestSearchResult; se
   )
 }
 
-function SearchPanel({
-  title, type, currency, onSelect, selected,
+function RequestPanel({
+  title, type, items, loading, selected, onSelect, amount, onAmountChange, onSearch,
 }: {
-  title: string; type: RequestType; currency: Currency
-  onSelect: (r: RequestSearchResult | null) => void; selected: RequestSearchResult | null
+  title: string
+  type: RequestType
+  items: AdminRequestItem[]
+  loading: boolean
+  selected: AdminRequestItem | null
+  onSelect: (r: AdminRequestItem | null) => void
+  amount: string
+  onAmountChange: (v: string) => void
+  onSearch: () => void
 }) {
-  const [amount, setAmount] = useState('')
-  const [results, setResults] = useState<RequestSearchResult[]>([])
-  const [loading, setLoading] = useState(false)
-  const [searched, setSearched] = useState(false)
-
-  const handleSearch = async () => {
-    setLoading(true); setSearched(true)
-    try {
-      const data = await requestsApi.search(type, currency, amount ? parseFloat(amount) : undefined)
-      setResults(data)
-      if (selected && !data.find(r => r.requestId === selected.requestId)) onSelect(null)
-    } catch { setResults([]) }
-    finally { setLoading(false) }
-  }
-
   const isGreen = type === RequestType.Send
 
   return (
@@ -95,12 +87,12 @@ function SearchPanel({
             type="number"
             placeholder="Filter by amount (optional)"
             value={amount}
-            onChange={e => setAmount(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            onChange={e => onAmountChange(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && onSearch()}
             style={{ flex: 1, height: 38, border: '1.5px solid var(--ink-20)', borderRadius: 'var(--radius-md)', padding: '0 12px', fontSize: 13, color: 'var(--ink)', outline: 'none', background: '#fff' }}
           />
-          <button onClick={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
-            {loading ? <Spinner size={14} color="#fff" /> : <><IconSearch size={13} /> Search</>}
+          <button onClick={onSearch} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
+            {loading ? <Spinner size={14} color="#fff" /> : <><IconRefresh size={13} /> Filter</>}
           </button>
         </div>
       </div>
@@ -108,24 +100,18 @@ function SearchPanel({
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
         {loading && <div style={{ display: 'flex', justifyContent: 'center', padding: 30 }}><Spinner /></div>}
 
-        {!loading && searched && results.length === 0 && (
+        {!loading && items.length === 0 && (
           <div style={{ background: '#fff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--ink-10)', padding: 30, textAlign: 'center', color: 'var(--ink-40)', fontSize: 13 }}>
-            No matching requests found
+            No {isGreen ? 'send' : 'receive'} requests found
           </div>
         )}
 
-        {!loading && !searched && (
-          <div style={{ background: '#fff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--ink-10)', padding: 30, textAlign: 'center', color: 'var(--ink-40)', fontSize: 13 }}>
-            Click Search to find {title.toLowerCase()}
-          </div>
-        )}
-
-        {!loading && results.map(r => (
+        {!loading && items.map(r => (
           <RequestCard
-            key={r.requestId}
+            key={r.id}
             req={r}
-            selected={selected?.requestId === r.requestId}
-            onSelect={() => onSelect(selected?.requestId === r.requestId ? null : r)}
+            selected={selected?.id === r.id}
+            onSelect={() => onSelect(selected?.id === r.id ? null : r)}
           />
         ))}
       </div>
@@ -136,10 +122,47 @@ function SearchPanel({
 export default function AdminMatch() {
   const toast = useToast()
   const [currency, setCurrency] = useState<Currency>(Currency.EUR)
-  const [senderReq,   setSenderReq]   = useState<RequestSearchResult | null>(null)
-  const [receiverReq, setReceiverReq] = useState<RequestSearchResult | null>(null)
+
+  const [senderItems, setSenderItems]       = useState<AdminRequestItem[]>([])
+  const [receiverItems, setReceiverItems]   = useState<AdminRequestItem[]>([])
+  const [senderLoading, setSenderLoading]   = useState(false)
+  const [receiverLoading, setReceiverLoading] = useState(false)
+  const [senderAmount, setSenderAmount]     = useState('')
+  const [receiverAmount, setReceiverAmount] = useState('')
+
+  const [senderReq,   setSenderReq]   = useState<AdminRequestItem | null>(null)
+  const [receiverReq, setReceiverReq] = useState<AdminRequestItem | null>(null)
   const [isAgentInvolved, setIsAgentInvolved] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  const fetchSender = useCallback(async (cur: Currency, amount?: string) => {
+    setSenderLoading(true)
+    try {
+      const data = await requestsApi.adminGetAll(RequestType.Send, cur, amount ? parseFloat(amount) : undefined)
+      setSenderItems(data)
+      setSenderReq(prev => prev && data.find(r => r.id === prev.id) ? prev : null)
+    } catch { setSenderItems([]) }
+    finally { setSenderLoading(false) }
+  }, [])
+
+  const fetchReceiver = useCallback(async (cur: Currency, amount?: string) => {
+    setReceiverLoading(true)
+    try {
+      const data = await requestsApi.adminGetAll(RequestType.Receive, cur, amount ? parseFloat(amount) : undefined)
+      setReceiverItems(data)
+      setReceiverReq(prev => prev && data.find(r => r.id === prev.id) ? prev : null)
+    } catch { setReceiverItems([]) }
+    finally { setReceiverLoading(false) }
+  }, [])
+
+  useEffect(() => {
+    setSenderAmount('')
+    setReceiverAmount('')
+    setSenderReq(null)
+    setReceiverReq(null)
+    fetchSender(currency)
+    fetchReceiver(currency)
+  }, [currency, fetchSender, fetchReceiver])
 
   const handleCreateMatch = async () => {
     if (!senderReq || !receiverReq) {
@@ -148,10 +171,12 @@ export default function AdminMatch() {
     }
     setSubmitting(true)
     try {
-      const res = await matchesApi.createAdmin(senderReq.requestId, receiverReq.requestId, isAgentInvolved)
+      const res = await matchesApi.createAdmin(senderReq.id, receiverReq.id, isAgentInvolved)
       toast('success', 'Match Created', `Match ID: ${res.id}`)
       setSenderReq(null)
       setReceiverReq(null)
+      fetchSender(currency)
+      fetchReceiver(currency)
     } catch (err: unknown) {
       const e = err as Record<string, string>
       toast('error', 'Match failed', e?.detail ?? e?.title ?? 'Unknown error')
@@ -182,15 +207,24 @@ export default function AdminMatch() {
           ))}
         </div>
         <span style={{ fontSize: 12, color: 'var(--ink-40)', marginLeft: 'auto' }}>
-          Search in both panels, then select one from each to create a match
+          Select one from each panel to create a match
         </span>
       </div>
 
-      {/* Two-panel search */}
+      {/* Two-panel */}
       <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-        <SearchPanel title="Sender Requests (Send)" type={RequestType.Send} currency={currency} selected={senderReq} onSelect={setSenderReq} />
+        <RequestPanel
+          title="Sender Requests (Send)"
+          type={RequestType.Send}
+          items={senderItems}
+          loading={senderLoading}
+          selected={senderReq}
+          onSelect={setSenderReq}
+          amount={senderAmount}
+          onAmountChange={setSenderAmount}
+          onSearch={() => fetchSender(currency, senderAmount)}
+        />
 
-        {/* Center divider */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 60, gap: 8, flexShrink: 0 }}>
           <div style={{ width: 1, height: 40, background: 'var(--ink-20)' }} />
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--ink-5)', border: '2px solid var(--ink-20)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -199,7 +233,17 @@ export default function AdminMatch() {
           <div style={{ width: 1, height: 40, background: 'var(--ink-20)' }} />
         </div>
 
-        <SearchPanel title="Receiver Requests (Receive)" type={RequestType.Receive} currency={currency} selected={receiverReq} onSelect={setReceiverReq} />
+        <RequestPanel
+          title="Receiver Requests (Receive)"
+          type={RequestType.Receive}
+          items={receiverItems}
+          loading={receiverLoading}
+          selected={receiverReq}
+          onSelect={setReceiverReq}
+          amount={receiverAmount}
+          onAmountChange={setReceiverAmount}
+          onSearch={() => fetchReceiver(currency, receiverAmount)}
+        />
       </div>
 
       {/* Match preview and submit */}
@@ -207,7 +251,6 @@ export default function AdminMatch() {
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 14 }}>Match Preview</div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 12, alignItems: 'center', marginBottom: 18 }}>
-          {/* Sender */}
           <div style={{ background: senderReq ? 'var(--green-light)' : 'var(--ink-5)', borderRadius: 'var(--radius-lg)', padding: '14px', border: `1px solid ${senderReq ? 'var(--green-mid)' : 'var(--ink-10)'}` }}>
             {senderReq ? (
               <>
@@ -219,9 +262,7 @@ export default function AdminMatch() {
                 </button>
               </>
             ) : (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-40)', textAlign: 'center', padding: '8px 0' }}>
-                Select a sender request
-              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink-40)', textAlign: 'center', padding: '8px 0' }}>Select a sender request</div>
             )}
           </div>
 
@@ -231,7 +272,6 @@ export default function AdminMatch() {
             </div>
           </div>
 
-          {/* Receiver */}
           <div style={{ background: receiverReq ? 'var(--blue-light)' : 'var(--ink-5)', borderRadius: 'var(--radius-lg)', padding: '14px', border: `1px solid ${receiverReq ? '#bfdbfe' : 'var(--ink-10)'}` }}>
             {receiverReq ? (
               <>
@@ -243,19 +283,13 @@ export default function AdminMatch() {
                 </button>
               </>
             ) : (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-40)', textAlign: 'center', padding: '8px 0' }}>
-                Select a receiver request
-              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink-40)', textAlign: 'center', padding: '8px 0' }}>Select a receiver request</div>
             )}
           </div>
         </div>
 
-        {/* Agent toggle + submit */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div
-            onClick={() => setIsAgentInvolved(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-          >
+          <div onClick={() => setIsAgentInvolved(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
             <div style={{ width: 44, height: 26, borderRadius: 'var(--radius-full)', background: isAgentInvolved ? 'var(--green)' : 'var(--ink-20)', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
               <div style={{ position: 'absolute', width: 20, height: 20, borderRadius: '50%', background: '#fff', top: 3, left: isAgentInvolved ? 21 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.18)' }} />
             </div>
