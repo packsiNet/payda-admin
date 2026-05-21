@@ -1,0 +1,58 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --green: #10b95a;
+  --green-light: #ecfdf5;
+  --green-mid: #a7f3d0;
+  --green-dark: #059a46;
+  --green-text: #065f46;
+
+  --ink: #0f172a;
+  --ink-80: #1e293b;
+  --ink-60: #475569;
+  --ink-40: #94a3b8;
+  --ink-20: #cbd5e1;
+  --ink-10: #f1f5f9;
+  --ink-5: #f8fafc;
+
+  --indigo: #6366f1;
+  --indigo-light: #eef2ff;
+  --amber: #f59e0b;
+  --amber-light: #fffbeb;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --blue: #3b82f6;
+  --blue-light: #eff6ff;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+
+  --sidebar-width: 240px;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ink-5);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+#root {
+  display: flex;
+  min-height: 100svh;
+}
+
+button { cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; background: none; }
+input, select, textarea { font-family: 'DM Sans', sans-serif; }
+a { text-decoration: none; color: inherit; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
