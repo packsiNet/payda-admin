@@ -65,21 +65,19 @@ nginx -t
 systemctl reload nginx
 echo "==> Nginx reloaded"
 
-# Obtain SSL certificate (only on first run)
-if [ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
-  echo "==> Obtaining SSL certificate for ${DOMAIN}..."
-  certbot --nginx \
-    -d "${DOMAIN}" \
-    --non-interactive \
-    --agree-tos \
-    --email "${CERT_EMAIL}" \
-    --redirect
-  echo "==> SSL certificate obtained successfully"
-else
-  echo "==> SSL certificate already exists, skipping..."
-fi
+# Run certbot every deploy — idempotent with --keep-until-expiring
+# This re-adds HTTPS config to nginx even if we just overwrote it above
+echo "==> Configuring SSL with certbot..."
+certbot --nginx \
+  -d "${DOMAIN}" \
+  --non-interactive \
+  --agree-tos \
+  --email "${CERT_EMAIL}" \
+  --redirect \
+  --keep-until-expiring
+echo "==> SSL configured"
 
-# Final reload to apply any certbot changes
+# Final reload to apply certbot changes
 systemctl reload nginx
 
 echo ""
