@@ -132,7 +132,7 @@ export default function Kyc() {
     [page, pageSize]
   )
 
-  const quickAct = async (user: PendingKycUser, action: () => Promise<void>, msg: string) => {
+  const quickAct = async (_user: PendingKycUser, action: () => Promise<void>, msg: string) => {
     try { await action(); toast('success', msg); refetch() }
     catch (err: unknown) { const e = err as Record<string, string>; toast('error', 'Failed', e?.detail ?? '') }
   }
