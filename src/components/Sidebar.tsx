@@ -2,14 +2,15 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   IconLayoutDashboard, IconUsers, IconArrowsExchange,
   IconCategory, IconArrowLeftRight, IconSettings,
-  IconLogout, IconStack2,
+  IconLogout, IconStack2, IconIdBadge2,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
 const navItems = [
   { icon: IconLayoutDashboard, label: 'Dashboard',       to: '/' },
   { icon: IconUsers,           label: 'Users',           to: '/users' },
-  { icon: IconArrowsExchange,label: 'Exchange Rates',  to: '/exchange-rates' },
+  { icon: IconIdBadge2,        label: 'KYC Review',      to: '/kyc' },
+  { icon: IconArrowsExchange,  label: 'Exchange Rates',  to: '/exchange-rates' },
   { icon: IconCategory,        label: 'Tiers',           to: '/tiers' },
   { icon: IconArrowLeftRight,  label: 'Admin Match',     to: '/admin-match' },
 ]

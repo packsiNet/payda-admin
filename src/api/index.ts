@@ -1,6 +1,6 @@
 import { http } from './client'
 import type {
-  LoginResponse, User, UserDetail, ExchangeRate, Tier,
+  LoginResponse, User, UserDetail, PendingKycUser, ExchangeRate, Tier,
   RequestItem, RequestSearchResult, AdminRequestItem, Transaction,
 } from './types'
 import { Currency, CurrencyLabel, RequestType, TransactionStatus } from './types'
@@ -19,13 +19,14 @@ export const authApi = {
 }
 
 export const usersApi = {
-  getAll:     (page = 1, pageSize = 20) => http.get<User[]>(`/users?page=${page}&pageSize=${pageSize}`),
-  getMe:      ()         => http.get<UserDetail>('/users/me'),
-  getById:    (id: string) => http.get<UserDetail>(`/users/${id}`),
-  approveKyc: (id: string) => http.post<void>(`/users/${id}/approve-kyc`),
-  rejectKyc:  (id: string) => http.post<void>(`/users/${id}/reject-kyc`),
-  setTrusted: (id: string, isTrusted: boolean) => http.post<void>(`/users/${id}/trusted`, { isTrusted }),
-  setRole:    (id: string, role: number)       => http.post<void>(`/users/${id}/role`, { role }),
+  getAll:        (page = 1, pageSize = 20) => http.get<User[]>(`/users?page=${page}&pageSize=${pageSize}`),
+  getMe:         ()         => http.get<UserDetail>('/users/me'),
+  getById:       (id: string) => http.get<UserDetail>(`/users/${id}`),
+  getPendingKyc: (page = 1, pageSize = 20) => http.get<PendingKycUser[]>(`/users/pending-kyc?page=${page}&pageSize=${pageSize}`),
+  approveKyc:    (id: string) => http.post<void>(`/users/${id}/approve-kyc`),
+  rejectKyc:     (id: string) => http.post<void>(`/users/${id}/reject-kyc`),
+  setTrusted:    (id: string, isTrusted: boolean) => http.post<void>(`/users/${id}/trusted`, { isTrusted }),
+  setRole:       (id: string, role: number)       => http.post<void>(`/users/${id}/role`, { role }),
 }
 
 export const ratesApi = {

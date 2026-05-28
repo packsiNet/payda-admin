@@ -9,6 +9,7 @@ import Users from './pages/Users'
 import ExchangeRates from './pages/ExchangeRates'
 import Tiers from './pages/Tiers'
 import AdminMatch from './pages/AdminMatch'
+import Kyc from './pages/Kyc'
 import Spinner from './components/Spinner'
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route path="exchange-rates" element={<ExchangeRates />} />
         <Route path="tiers"          element={<Tiers />} />
         <Route path="admin-match"    element={<AdminMatch />} />
+        <Route path="kyc"            element={<Kyc />} />
         <Route path="settings"       element={<PlaceholderPage title="Settings" />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

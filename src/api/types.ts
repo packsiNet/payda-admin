@@ -53,6 +53,19 @@ export interface UserDetail extends User {
   documentImageUrl: string | null
 }
 
+export interface PendingKycUser {
+  id: string
+  telegramId: number
+  telegramUsername: string | null
+  firstName: string | null
+  lastName: string | null
+  dateOfBirth: string | null
+  phoneNumber: string | null
+  selfieImageUrl: string
+  documentImageUrl: string
+  kycSubmittedAt: string
+}
+
 export interface ExchangeRate {
   currency: Currency
   marketRate: number
