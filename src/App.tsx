@@ -51,15 +51,6 @@ function AppRoutes() {
   )
 }
 
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
-      <div style={{ fontSize: 40 }}>🚧</div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)' }}>{title}</div>
-      <div style={{ fontSize: 13, color: 'var(--ink-40)' }}>This section is under construction.</div>
-    </div>
-  )
-}
 
 export default function App() {
   return (
