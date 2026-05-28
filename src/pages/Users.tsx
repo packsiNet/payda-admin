@@ -36,7 +36,7 @@ function UserDetailModal({ user, onClose, onRefresh }: { user: User; onClose: ()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [newRole, setNewRole] = useState(user.role)
-  const { data: detail, loading: detailLoading } = useApi(() => usersApi.getById(user.id), [user.id])
+  const [imgError, setImgError] = useState<Record<string, boolean>>({})
 
   const act = async (action: () => Promise<void>, successMsg: string) => {
     setLoading(true)
@@ -58,7 +58,7 @@ function UserDetailModal({ user, onClose, onRefresh }: { user: User; onClose: ()
       open
       onClose={onClose}
       title={`User: ${name}`}
-      width={560}
+      width={580}
       footer={
         <button onClick={onClose} style={{ padding: '8px 18px', borderRadius: 'var(--radius-md)', border: '1.5px solid var(--ink-20)', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: 'var(--ink-60)' }}>
           Close
@@ -83,27 +83,46 @@ function UserDetailModal({ user, onClose, onRefresh }: { user: User; onClose: ()
         </div>
 
         {/* KYC Images */}
-        {detailLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}><Spinner /></div>
-        ) : (detail?.selfieImageUrl || detail?.documentImageUrl) ? (
+        {(user.selfieImageUrl || user.documentImageUrl) && (
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-40)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 10 }}>KYC Documents</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {detail.selfieImageUrl && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {user.selfieImageUrl && (
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-60)', marginBottom: 6 }}>Selfie</div>
-                  <img src={detail.selfieImageUrl} alt="Selfie" style={{ width: '100%', borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', maxHeight: 160 }} />
+                  {imgError['selfie'] ? (
+                    <div style={{ height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', background: 'var(--ink-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-40)', fontSize: 12 }}>Failed to load</div>
+                  ) : (
+                    <img
+                      src={user.selfieImageUrl}
+                      alt="Selfie"
+                      onError={() => setImgError(p => ({ ...p, selfie: true }))}
+                      onClick={() => window.open(user.selfieImageUrl!, '_blank')}
+                      style={{ width: '100%', height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', display: 'block', cursor: 'pointer' }}
+                    />
+                  )}
                 </div>
               )}
-              {detail.documentImageUrl && (
+              {user.documentImageUrl && (
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-60)', marginBottom: 6 }}>Document</div>
-                  <img src={detail.documentImageUrl} alt="Document" style={{ width: '100%', borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', maxHeight: 160 }} />
+                  {imgError['document'] ? (
+                    <div style={{ height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', background: 'var(--ink-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-40)', fontSize: 12 }}>Failed to load</div>
+                  ) : (
+                    <img
+                      src={user.documentImageUrl}
+                      alt="Document"
+                      onError={() => setImgError(p => ({ ...p, document: true }))}
+                      onClick={() => window.open(user.documentImageUrl!, '_blank')}
+                      style={{ width: '100%', height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', display: 'block', cursor: 'pointer' }}
+                    />
+                  )}
                 </div>
               )}
             </div>
+            <div style={{ fontSize: 10, color: 'var(--ink-40)', marginTop: 6 }}>Click image to open full size</div>
           </div>
-        ) : null}
+        )}
 
         {/* KYC Actions */}
         {user.kycStatus === KycStatus.Pending && (

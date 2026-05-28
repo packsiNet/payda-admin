@@ -43,6 +43,8 @@ export interface User {
   isTrusted: boolean
   tierName: string
   createdAt: string
+  selfieImageUrl: string | null
+  documentImageUrl: string | null
 }
 
 export interface UserDetail extends User {
