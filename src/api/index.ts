@@ -57,8 +57,13 @@ export const requestsApi = {
 }
 
 export const matchesApi = {
-  createAdmin: (senderRequestId: string, receiverRequestId: string, isAgentInvolved: boolean) =>
-    http.post<{ id: string }>('/matches/admin', { senderRequestId, receiverRequestId, isAgentInvolved }),
+  createAdmin: (senderRequestId: string, receiverRequestId: string, price: number, isAgentInvolved: boolean) =>
+    http.post<{ id: string }>('/matches/admin', { senderRequestId, receiverRequestId, price, isAgentInvolved }),
+}
+
+export const settingsApi = {
+  getMatchConfirmationHours: () => http.get<{ hours: number }>('/settings/match-confirmation-hours'),
+  setMatchConfirmationHours: (hours: number) => http.put<void>('/settings/match-confirmation-hours', { hours }),
 }
 
 export const transactionsApi = {

@@ -132,6 +132,7 @@ export default function AdminMatch() {
 
   const [senderReq,   setSenderReq]   = useState<AdminRequestItem | null>(null)
   const [receiverReq, setReceiverReq] = useState<AdminRequestItem | null>(null)
+  const [price, setPrice]             = useState('')
   const [isAgentInvolved, setIsAgentInvolved] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -169,12 +170,18 @@ export default function AdminMatch() {
       toast('error', 'Selection required', 'Please select both a sender and a receiver request')
       return
     }
+    const priceNum = parseFloat(price)
+    if (!price || isNaN(priceNum) || priceNum <= 0) {
+      toast('error', 'Price required', 'Enter a valid match price')
+      return
+    }
     setSubmitting(true)
     try {
-      const res = await matchesApi.createAdmin(senderReq.id, receiverReq.id, isAgentInvolved)
+      const res = await matchesApi.createAdmin(senderReq.id, receiverReq.id, priceNum, isAgentInvolved)
       toast('success', 'Match Created', `Match ID: ${res.id}`)
       setSenderReq(null)
       setReceiverReq(null)
+      setPrice('')
       fetchSender(currency)
       fetchReceiver(currency)
     } catch (err: unknown) {
@@ -288,6 +295,20 @@ export default function AdminMatch() {
           </div>
         </div>
 
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--ink-40)', marginBottom: 6 }}>
+            Match Price
+          </label>
+          <input
+            type="number"
+            placeholder="e.g. 62500"
+            value={price}
+            onChange={e => setPrice(e.target.value)}
+            min={0}
+            style={{ width: '100%', height: 42, border: `1.5px solid ${price && parseFloat(price) > 0 ? 'var(--green)' : 'var(--ink-20)'}`, borderRadius: 'var(--radius-md)', padding: '0 14px', fontSize: 14, fontWeight: 600, color: 'var(--ink)', outline: 'none', background: '#fff', boxSizing: 'border-box', fontFamily: "'DM Mono', monospace" }}
+          />
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div onClick={() => setIsAgentInvolved(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
             <div style={{ width: 44, height: 26, borderRadius: 'var(--radius-full)', background: isAgentInvolved ? 'var(--green)' : 'var(--ink-20)', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
@@ -301,14 +322,14 @@ export default function AdminMatch() {
 
           <button
             onClick={handleCreateMatch}
-            disabled={!senderReq || !receiverReq || submitting}
+            disabled={!senderReq || !receiverReq || !price || submitting}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '12px 28px', background: 'var(--green)', color: '#fff',
               border: 'none', borderRadius: 'var(--radius-lg)', fontSize: 14, fontWeight: 700,
-              cursor: !senderReq || !receiverReq ? 'not-allowed' : 'pointer',
-              opacity: !senderReq || !receiverReq || submitting ? 0.5 : 1,
-              boxShadow: senderReq && receiverReq ? '0 4px 12px rgba(16,185,90,0.3)' : 'none',
+              cursor: !senderReq || !receiverReq || !price ? 'not-allowed' : 'pointer',
+              opacity: !senderReq || !receiverReq || !price || submitting ? 0.5 : 1,
+              boxShadow: senderReq && receiverReq && price ? '0 4px 12px rgba(16,185,90,0.3)' : 'none',
               transition: 'all 0.15s',
             }}
           >
