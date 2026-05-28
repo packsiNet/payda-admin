@@ -37,6 +37,16 @@ function UserDetailModal({ user, onClose, onRefresh }: { user: User; onClose: ()
   const [loading, setLoading] = useState(false)
   const [newRole, setNewRole] = useState(user.role)
   const [imgError, setImgError] = useState<Record<string, boolean>>({})
+  const [lightbox, setLightbox] = useState<string | null>(null)
+
+  const needsDetailFetch = !user.selfieImageUrl && !user.documentImageUrl
+  const { data: detail, loading: detailLoading } = useApi(
+    () => needsDetailFetch ? usersApi.getById(user.id) : Promise.resolve(null),
+    [user.id, needsDetailFetch]
+  )
+
+  const selfieUrl    = user.selfieImageUrl    ?? detail?.selfieImageUrl    ?? null
+  const documentUrl  = user.documentImageUrl  ?? detail?.documentImageUrl  ?? null
 
   const act = async (action: () => Promise<void>, successMsg: string) => {
     setLoading(true)
@@ -83,44 +93,60 @@ function UserDetailModal({ user, onClose, onRefresh }: { user: User; onClose: ()
         </div>
 
         {/* KYC Images */}
-        {(user.selfieImageUrl || user.documentImageUrl) && (
+        {detailLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}><Spinner /></div>
+        ) : (selfieUrl || documentUrl) ? (
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-40)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 10 }}>KYC Documents</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {user.selfieImageUrl && (
+              {selfieUrl && (
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-60)', marginBottom: 6 }}>Selfie</div>
                   {imgError['selfie'] ? (
-                    <div style={{ height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', background: 'var(--ink-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-40)', fontSize: 12 }}>Failed to load</div>
+                    <div style={{ height: 120, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', background: 'var(--ink-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-40)', fontSize: 12 }}>Failed to load</div>
                   ) : (
                     <img
-                      src={user.selfieImageUrl}
+                      src={selfieUrl}
                       alt="Selfie"
                       onError={() => setImgError(p => ({ ...p, selfie: true }))}
-                      onClick={() => window.open(user.selfieImageUrl!, '_blank')}
-                      style={{ width: '100%', height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', display: 'block', cursor: 'pointer' }}
+                      onClick={() => setLightbox(selfieUrl)}
+                      style={{ width: '100%', height: 120, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', display: 'block', cursor: 'zoom-in' }}
                     />
                   )}
                 </div>
               )}
-              {user.documentImageUrl && (
+              {documentUrl && (
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-60)', marginBottom: 6 }}>Document</div>
                   {imgError['document'] ? (
-                    <div style={{ height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', background: 'var(--ink-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-40)', fontSize: 12 }}>Failed to load</div>
+                    <div style={{ height: 120, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', background: 'var(--ink-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-40)', fontSize: 12 }}>Failed to load</div>
                   ) : (
                     <img
-                      src={user.documentImageUrl}
+                      src={documentUrl}
                       alt="Document"
                       onError={() => setImgError(p => ({ ...p, document: true }))}
-                      onClick={() => window.open(user.documentImageUrl!, '_blank')}
-                      style={{ width: '100%', height: 180, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', display: 'block', cursor: 'pointer' }}
+                      onClick={() => setLightbox(documentUrl)}
+                      style={{ width: '100%', height: 120, borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-10)', objectFit: 'cover', display: 'block', cursor: 'zoom-in' }}
                     />
                   )}
                 </div>
               )}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--ink-40)', marginTop: 6 }}>Click image to open full size</div>
+            <div style={{ fontSize: 10, color: 'var(--ink-40)', marginTop: 6 }}>Click thumbnail to enlarge</div>
+          </div>
+        ) : null}
+
+        {/* Lightbox */}
+        {lightbox && (
+          <div
+            onClick={() => setLightbox(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}
+          >
+            <img
+              src={lightbox}
+              alt="Full size"
+              style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 'var(--radius-md)', objectFit: 'contain', boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}
+            />
           </div>
         )}
 
