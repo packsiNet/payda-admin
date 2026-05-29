@@ -42,7 +42,7 @@ function RequestCard({ req, selected, onSelect }: { req: AdminRequestItem; selec
         </div>
         <div style={{ flex: 1, background: selected ? 'rgba(255,255,255,0.6)' : 'var(--ink-5)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--ink-40)', marginBottom: 3 }}>Rate</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--indigo)', fontFamily: "'DM Mono', monospace" }}>{req.rateValue.toLocaleString()}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--indigo)', fontFamily: "'DM Mono', monospace" }}>{req.rateValue?.toLocaleString() ?? '—'}</div>
         </div>
       </div>
 
